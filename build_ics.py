@@ -20,11 +20,15 @@ L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//UGC Portal//EN","CALSCALE:GREGORIA
 for due,i,d in evs:
     day=datetime.date.fromisoformat(due); nxt=day+datetime.timedelta(days=1)
     title=d.get("title","").replace("Gig: ","")
+    gigpart=""
+    if d.get("gig") and " - " in title:
+        title,gigpart=title.rsplit(" - ",1)
     b=d.get("brand","").strip()
     if b:
         title=re.sub(r"\b"+re.escape(b)+r"(\s+One)?\b","",title,flags=re.I)
         title=re.sub(r"\s+(with|for|by|at|x|from)\s*$","",title.strip(),flags=re.I)
         title=re.sub(r"\s{2,}"," ",title).strip(" -,:")
+    if gigpart: title=f"{title} | {gigpart.strip()}"
     L+=["BEGIN:VEVENT",f"UID:{i}@ugc-portal",f"DTSTAMP:{now}",f"DTSTART;VALUE=DATE:{day:%Y%m%d}",f"DTEND;VALUE=DATE:{nxt:%Y%m%d}",
         fold("SUMMARY:"+esc(f'UGC - {d.get("brand","")}, {title}')),"TRANSP:TRANSPARENT",
         "BEGIN:VALARM","ACTION:DISPLAY",fold("DESCRIPTION:"+esc(title+" is due tomorrow")),"TRIGGER:-PT15H","END:VALARM","END:VEVENT"]
