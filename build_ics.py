@@ -14,6 +14,9 @@ evs=[]
 for f in sorted(glob.glob(os.path.join(src,"*.json"))):
     j=json.load(open(f)); d=j.get("data",j)
     if d.get("status") in OPEN and d.get("due"): evs.append((d["due"],os.path.basename(f)[:-5],d))
+# skip a main gig event when one of its own open tasks is due the same day (avoids duplicates)
+_sub={(d.get("gig"),due) for due,i,d in evs if d.get("gig")}
+evs=[e for e in evs if (e[1],e[0]) not in _sub]
 evs.sort(key=lambda x:(x[0],x[1]))
 now=datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//UGC Portal//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:UGC Portal","X-PUBLISHED-TTL:PT6H","REFRESH-INTERVAL;VALUE=DURATION:PT6H"]
